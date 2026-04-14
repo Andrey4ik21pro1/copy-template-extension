@@ -8,12 +8,23 @@
 ---
 
 ## Description
-A VS Code extension for creating projects from templates using Copier, without leaving the editor.
+A VS Code extension for creating projects from templates using Copier, without leaving the editor. Make sure to install [copy-template](https://github.com/andrey4ik21pro1/copy-template):
+```bash
+pip install copy-template
+```
 
 ---
 
 ## Download
 - You can get latest extension build via GitHub Releases: https://github.com/andrey4ik21pro1/copy-template-extension/releases
+
+---
+
+## Installation
+- Run the following command:
+```bash
+code --install-extension path/to/extension.vsix
+```
 
 ---
 

@@ -95,7 +95,7 @@ function activate(context) {
 
 			const folder = await vscode.window.showInputBox({
 				prompt: l10n.t("promptFolder"),
-				placeHolder: "project-name"
+				placeHolder: "project-folder"
 			})
 			if (!folder) return
 
@@ -123,8 +123,7 @@ function activate(context) {
 
 				await vscode.commands.executeCommand(
 					"vscode.openFolder",
-					vscode.Uri.file(`${defaultFolder}/${folder}`),
-					{ forceNewWindow: true }
+					vscode.Uri.file(`${defaultFolder}/${folder}`)
 				)
 			})
 			context.subscriptions.push(disposable)

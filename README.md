@@ -3,7 +3,7 @@
 
 ![License](https://img.shields.io/badge/License-GPL%20v3.0-blue?style=for-the-badge)  ![JavaScript](https://img.shields.io/badge/Language-JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=white)  ![Copier](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-orange.json&style=for-the-badge)
 
-### Shortcut to Copier
+### Shortcut to Copier in VS Code
 
 ---
 

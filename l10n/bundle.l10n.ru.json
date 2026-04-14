@@ -1,0 +1,11 @@
+{
+    "loadingTemplates": "Загрузка шаблонов...",
+    "noAuthor": "Укажите author в настройках",
+    "noRepo": "Укажите repo в настройках",
+    "noDefaultFolder": "Укажите defaultProjectsFolder в настройках",
+    "settingsSaved": "Настройки сохранены",
+    "settingsFailed": "Не удалось сохранить настройки",
+    "templatesFailed": "Не удалось загрузить шаблоны",
+    "templatesRefreshed": "Шаблоны обновлены",
+    "promptFolder": "Папка проекта"
+}

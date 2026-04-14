@@ -1,0 +1,73 @@
+{
+  "name": "copy-template-extension",
+  "displayName": "copy-template",
+  "description": "Shortcut to Copier",
+  "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrey4ik21pro1/copy-template-extension.git"
+  },
+  "l10n": "./l10n",
+  "publisher": "Andrey4ik21pro1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "copy-template-extension.createProject",
+        "title": "%extension.copy-template.config.createProject%",
+        "category": "copy-template"
+      },
+      {
+        "command": "copy-template-extension.refreshTemplates",
+        "title": "%extension.copy-template.config.refreshTemplates%",
+        "category": "copy-template"
+      }
+    ],
+    "configuration": {
+      "title": "copy-template",
+      "properties": {
+        "copy-template.defaultProjectsFolder": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "%extension.copy-template.config.defaultProjectsFolder%"
+        },
+        "copy-template.author": {
+          "type": "string",
+          "description": "%extension.copy-template.config.author%"
+        },
+        "copy-template.repo": {
+          "type": "string",
+          "description": "%extension.copy-template.config.repo%"
+        },
+        "copy-template.explorer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%extension.copy-template.config.explorerEnabled%"
+        }
+      }
+    },
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "%extension.copy-template.viewsWelcome.contents%",
+        "when": "workspaceFolderCount == 0 && config.copy-template.explorer.enabled"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "npx esbuild ./src/extension.js --bundle --format=cjs --minify --platform=node --outfile=./dist/extension.js --external:vscode"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "@vscode/vsce": "^2.24.0"
+  }
+}

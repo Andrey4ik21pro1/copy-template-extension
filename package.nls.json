@@ -1,0 +1,9 @@
+{
+    "extension.copy-template.config.createProject": "Create project",
+    "extension.copy-template.config.refreshTemplates": "Refresh templates",
+    "extension.copy-template.config.defaultProjectsFolder": "Default projects folder",
+    "extension.copy-template.config.author": "GitHub author",
+    "extension.copy-template.config.repo": "GitHub repository",
+    "extension.copy-template.config.explorerEnabled": "Show Create Project button in Explorer",
+    "extension.copy-template.viewsWelcome.contents": "You can also create a new project.\n[Create project](command:copy-template-extension.createProject)"
+}

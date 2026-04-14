@@ -1,0 +1,53 @@
+name: Build
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: Select build type
+        default: debug
+        type: choice
+        options:
+          - debug
+          - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: |
+          npx vsce package
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension
+          path: "*.vsix"
+
+      - name: Extract version
+        if: ${{ inputs.build_type == 'release' }}
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: ${{ inputs.build_type == 'release' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: copy-template-extension-${{ steps.version.outputs.version }}.vsix
+          tag: v${{ steps.version.outputs.version }}
+          asset_name: copy-template-extension-${{ steps.version.outputs.version }}.vsix
+          release_name: ${{ steps.version.outputs.version }}
+          overwrite: true

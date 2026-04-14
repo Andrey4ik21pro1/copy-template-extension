@@ -1,0 +1,9 @@
+{
+    "extension.copy-template.config.createProject": "Создать проект",
+    "extension.copy-template.config.refreshTemplates": "Обновить шаблоны",
+    "extension.copy-template.config.defaultProjectsFolder": "Папка проектов по умолчанию",
+    "extension.copy-template.config.author": "GitHub автор",
+    "extension.copy-template.config.repo": "GitHub репозиторий",
+    "extension.copy-template.config.explorerEnabled": "Показывать кнопку Создать проект в проводнике",
+    "extension.copy-template.viewsWelcome.contents": "Вы также можете создать новый проект.\n[Создать проект](command:copy-template-extension.createProject)"
+}

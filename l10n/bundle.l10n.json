@@ -1,0 +1,11 @@
+{
+    "loadingTemplates": "Loading templates...",
+    "noAuthor": "Set author in settings",
+    "noRepo": "Set repo in settings",
+    "noDefaultFolder": "Set defaultProjectsFolder in settings",
+    "settingsSaved": "Settings saved",
+    "settingsFailed": "Failed to save settings",
+    "templatesFailed": "Failed to load templates",
+    "templatesRefreshed": "Templates refreshed",
+    "promptFolder": "Project folder"
+}

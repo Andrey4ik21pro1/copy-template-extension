@@ -4,29 +4,26 @@ const { l10n } = vscode
 const fs = require("fs")
 const path = require("path")
 
+const pythonCmd = process.platform === "win32" ? "python" : "python3"
+
 function getTemplates() {
-	try {
-		const options = { timeout: 15000, stdio: "pipe" }
-		const output = execSync("python -m copy_template --list", options).toString()
-		return { templates: output.split("\n").map(t => t.trim()).filter(Boolean) }
-	} catch (e) {
-		return { error: e.stderr?.toString().trim() || e.message }
-	}
+	const options = { timeout: 15000, stdio: "pipe" }
+	const output = execSync("${pythonCmd} -m copy_template --list", options).toString()
+	return output.split("\n").map(t => t.trim()).filter(Boolean)
 }
 
 async function fetchAndCache(cachePath) {
-	const result = await vscode.window.withProgress(
+	const templates = await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Notification,
 			title: l10n.t("loadingTemplates"),
 			cancellable: false
 		},
-		() => new Promise(resolve => resolve(getTemplates()))
+		async () => getTemplates()
 	)
-	if (result.error) return result
 	fs.mkdirSync(path.dirname(cachePath), { recursive: true })
-	fs.writeFileSync(cachePath, JSON.stringify(result.templates), "utf8")
-	return result
+	fs.writeFileSync(cachePath, JSON.stringify(templates), "utf8")
+	return templates
 }
 
 function activate(context) {
@@ -51,7 +48,7 @@ function activate(context) {
 				return
 			}
 
-			const parts = ["python -m copy_template"]
+			const parts = ["${pythonCmd} -m copy_template"]
 			if (author) parts.push(`--author ${author}`)
 			if (repo) parts.push(`--repo ${repo}`)
 
@@ -77,16 +74,17 @@ function activate(context) {
 			}
 
 			let templates // load templates from templates.json
-			try {
-				templates = JSON.parse(fs.readFileSync(cachePath, "utf8"))
-			} catch {
-				const result = await fetchAndCache(cachePath)
-				if (result.error) {
-					vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${result.error}`)
-					return
-				}
-				templates = result.templates
-			}
+            try {
+                if (fs.existsSync(cachePath)) {
+                    templates = JSON.parse(fs.readFileSync(cachePath, "utf8"))
+                } else {
+                    templates = await fetchAndCache(cachePath)
+                }
+            } catch (e) {
+                const detail = e.stderr?.toString().trim() || e.message
+                vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${detail}`)
+                return
+            }
 
 			const template = await vscode.window.showQuickPick(templates, {
 				placeHolder: "project-name"
@@ -99,13 +97,14 @@ function activate(context) {
 			})
 			if (!folder) return
 
-			const cmd = `python -m copy_template "${template}" "${defaultFolder}/${folder}"`
+			const targetPath = path.join(defaultFolder, folder)
+
 			const task = new vscode.Task(
 				{ type: "shell" },
 				vscode.TaskScope.Workspace,
 				"copy-template",
 				"copy-template",
-				new vscode.ShellExecution(cmd)
+				new vscode.ShellExecution(pythonCmd, ["-m", "copy_template", template, targetPath])
 			)
 
 			task.presentationOptions = {
@@ -123,7 +122,7 @@ function activate(context) {
 
 				await vscode.commands.executeCommand(
 					"vscode.openFolder",
-					vscode.Uri.file(`${defaultFolder}/${folder}`)
+					vscode.Uri.file(targetPath)
 				)
 			})
 			context.subscriptions.push(disposable)
@@ -133,12 +132,13 @@ function activate(context) {
 	const refreshTemplates = vscode.commands.registerCommand(
 		"copy-template-extension.refreshTemplates",
 		async () => {
-			const result = await fetchAndCache(cachePath)
-			if (result.error) {
-				vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${result.error}`)
-				return
-			}
-			vscode.window.showInformationMessage(l10n.t("templatesRefreshed"))
+			try {
+                await fetchAndCache(cachePath)
+                vscode.window.showInformationMessage(l10n.t("templatesRefreshed"))
+            } catch (e) {
+                const detail = e.stderr?.toString().trim() || e.message
+                vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${detail}`)
+            }
 		}
 	)
 

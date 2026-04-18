@@ -2,7 +2,7 @@
   "name": "copy-template-extension",
   "displayName": "copy-template",
   "description": "Shortcut to Copier in VS Code",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",

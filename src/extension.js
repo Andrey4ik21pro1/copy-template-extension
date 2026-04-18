@@ -8,7 +8,7 @@ const pythonCmd = process.platform === "win32" ? "python" : "python3"
 
 function getTemplates() {
 	const options = { timeout: 15000, stdio: "pipe" }
-	const output = execSync("${pythonCmd} -m copy_template --list", options).toString()
+	const output = execSync(`${pythonCmd} -m copy_template --list`, options).toString()
 	return output.split("\n").map(t => t.trim()).filter(Boolean)
 }
 
@@ -48,7 +48,7 @@ function activate(context) {
 				return
 			}
 
-			const parts = ["${pythonCmd} -m copy_template"]
+			const parts = [`${pythonCmd} -m copy_template`]
 			if (author) parts.push(`--author ${author}`)
 			if (repo) parts.push(`--repo ${repo}`)
 

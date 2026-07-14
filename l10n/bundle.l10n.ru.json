@@ -3,6 +3,7 @@
     "noAuthor": "Укажите author в настройках",
     "noRepo": "Укажите repo в настройках",
     "noDefaultFolder": "Укажите defaultProjectsFolder в настройках",
+    "noTemplates": "Шаблоны в кэше не найдены. Пожалуйста, сначала выполните «Обновить шаблоны».",
     "settingsSaved": "Настройки сохранены",
     "settingsFailed": "Не удалось сохранить настройки",
     "templatesFailed": "Не удалось загрузить шаблоны",

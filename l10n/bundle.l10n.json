@@ -3,6 +3,7 @@
     "noAuthor": "Set author in settings",
     "noRepo": "Set repo in settings",
     "noDefaultFolder": "Set defaultProjectsFolder in settings",
+    "noTemplates": "No templates found in cache. Please run 'Refresh Templates' first.",
     "settingsSaved": "Settings saved",
     "settingsFailed": "Failed to save settings",
     "templatesFailed": "Failed to load templates",

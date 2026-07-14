@@ -1,35 +1,57 @@
 const vscode = require("vscode")
-const { execSync } = require("child_process")
+const { exec } = require("child_process")
+const { promisify } = require("util")
 const { l10n } = vscode
 const fs = require("fs")
 const path = require("path")
+const os = require("os")
+
+const execAsync = promisify(exec)
 
 const pythonCmd = process.platform === "win32" ? "python" : "python3"
 
-function getTemplates() {
-	const options = { timeout: 15000, stdio: "pipe" }
-	const output = execSync(`${pythonCmd} -m copy_template --list`, options).toString()
-	return output.split("\n").map(t => t.trim()).filter(Boolean)
+function getDataPath() {
+	const home = os.homedir()
+	let baseDir
+
+	if (process.platform === "win32") {
+		baseDir = path.join(home, "AppData", "Local")
+	} else if (process.platform === "linux") {
+		baseDir = path.join(home, ".local", "share")
+	} else if (process.platform === "darwin") {
+		baseDir = path.join(home, "Library", "Application Support")
+	} else {
+		throw new Error(`Unsupported platform: ${process.platform}`)
+	}
+
+	return path.join(baseDir, "copy-template", "data.json")
 }
 
-async function fetchAndCache(cachePath) {
-	const templates = await vscode.window.withProgress(
+function getTemplates() {
+	const dataPath = getDataPath()
+
+	if (!fs.existsSync(dataPath)) {
+		return []
+	}
+
+	const content = fs.readFileSync(dataPath, "utf8")
+	const data = JSON.parse(content)
+	return data.templates || []
+}
+
+async function updateTemplatesCache() {
+	await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Notification,
 			title: l10n.t("loadingTemplates"),
 			cancellable: false
 		},
-		async () => getTemplates()
+		() => execAsync(`${pythonCmd} -m copy_template --update`, { timeout: 20000 })
 	)
-	fs.mkdirSync(path.dirname(cachePath), { recursive: true })
-	fs.writeFileSync(cachePath, JSON.stringify(templates), "utf8")
-	return templates
 }
 
 function activate(context) {
-	const cachePath = path.join(context.globalStorageUri.fsPath, "templates.json")
-
-	const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
+	const onConfigChange = vscode.workspace.onDidChangeConfiguration(async (e) => {
 		if (
 			e.affectsConfiguration("copy-template.author") ||
 			e.affectsConfiguration("copy-template.repo")
@@ -53,7 +75,7 @@ function activate(context) {
 			if (repo) parts.push(`--repo ${repo}`)
 
 			try {
-				execSync(parts.join(" "), { timeout: 10000, stdio: "pipe" })
+				await execAsync(parts.join(" "), { timeout: 10000, stdio: "pipe" })
 				vscode.window.showInformationMessage(l10n.t("settingsSaved"))
 			} catch (e) {
 				const detail = e.stderr?.toString().trim() || e.message
@@ -73,18 +95,19 @@ function activate(context) {
 				return
 			}
 
-			let templates // load templates from templates.json
+			let templates // load templates from data.json
             try {
-                if (fs.existsSync(cachePath)) {
-                    templates = JSON.parse(fs.readFileSync(cachePath, "utf8"))
-                } else {
-                    templates = await fetchAndCache(cachePath)
-                }
+                templates = getTemplates()
             } catch (e) {
-                const detail = e.stderr?.toString().trim() || e.message
+                const detail = e.message
                 vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${detail}`)
                 return
             }
+
+			if (templates.length === 0) {
+				vscode.window.showErrorMessage(l10n.t("noTemplates"))
+				return
+			}
 
 			const template = await vscode.window.showQuickPick(templates, {
 				placeHolder: "project-name"
@@ -133,7 +156,7 @@ function activate(context) {
 		"copy-template-extension.refreshTemplates",
 		async () => {
 			try {
-                await fetchAndCache(cachePath)
+                await updateTemplatesCache()
                 vscode.window.showInformationMessage(l10n.t("templatesRefreshed"))
             } catch (e) {
                 const detail = e.stderr?.toString().trim() || e.message

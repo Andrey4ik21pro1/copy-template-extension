@@ -31,7 +31,7 @@ function getTemplates() {
 	const dataPath = getDataPath()
 
 	if (!fs.existsSync(dataPath)) {
-		return []
+		throw new Error("Data file not found. Please refresh templates.")
 	}
 
 	const content = fs.readFileSync(dataPath, "utf8")

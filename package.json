@@ -17,6 +17,17 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "scaffold",
+    "scaffolding",
+    "generator",
+    "boilerplate",
+    "template",
+    "project-templates",
+    "starter-kit",
+    "init",
+    "create-app"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {

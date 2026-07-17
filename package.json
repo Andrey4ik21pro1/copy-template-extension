@@ -10,6 +10,7 @@
   },
   "l10n": "./l10n",
   "publisher": "Andrey4ik21pro1",
+  "icon": "icon-512.png",
   "engines": {
     "vscode": "^1.74.0"
   },

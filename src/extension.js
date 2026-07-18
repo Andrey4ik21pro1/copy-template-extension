@@ -27,13 +27,10 @@ function getDataPath() {
 	return path.join(baseDir, "copy-template", "data.json")
 }
 
-async function getTemplates() {
-	const dataPath = getDataPath()
-
+async function getData(dataPath) {
 	try {
 		const content = await fs.readFile(dataPath, "utf8")
-		const data = JSON.parse(content)
-		return data.templates || []
+		return JSON.parse(content)
 	} catch (e) {
 		if (e.code === "ENOENT") {
 			throw new Error("Data file not found. Please refresh templates.")
@@ -41,6 +38,11 @@ async function getTemplates() {
 
 		throw e
 	}
+}
+
+async function getTemplates(dataPath) {
+	const data = await getData(dataPath)
+	return data.templates || []
 }
 
 async function updateTemplatesCache() {
@@ -55,6 +57,8 @@ async function updateTemplatesCache() {
 }
 
 function activate(context) {
+	const dataPath = getDataPath()
+
 	const onConfigChange = vscode.workspace.onDidChangeConfiguration(async (e) => {
 		if (
 			e.affectsConfiguration("copy-template.author") ||
@@ -64,25 +68,23 @@ function activate(context) {
 			const author = config.get("author")
 			const repo = config.get("repo")
 
-			if (!author) {
-				vscode.window.showErrorMessage(l10n.t("noAuthor"))
-				return
-			}
-
-			if (!repo) {
-				vscode.window.showErrorMessage(l10n.t("noRepo"))
-				return
-			}
-
-			const parts = [`${pythonCmd} -m copy_template`]
-			if (author) parts.push(`--author ${author}`)
-			if (repo) parts.push(`--repo ${repo}`)
-
 			try {
-				await execAsync(parts.join(" "), { timeout: 10000, stdio: "pipe" })
+				let data
+				try {
+					data = await getData(dataPath)
+				} catch (e) {
+					data = { author: "", repo: "", templates: [] }
+				}
+
+				data.author = author || ""
+				data.repo = repo || ""
+
+				await fs.mkdir(path.dirname(dataPath), { recursive: true })
+				await fs.writeFile(dataPath, JSON.stringify(data), "utf8")
+
 				vscode.window.showInformationMessage(l10n.t("settingsSaved"))
 			} catch (e) {
-				const detail = e.stderr?.toString().trim() || e.message
+				const detail = e.message
 				vscode.window.showErrorMessage(`${l10n.t("settingsFailed")}: ${detail}`)
 			}
 		}
@@ -94,6 +96,16 @@ function activate(context) {
 			const config = vscode.workspace.getConfiguration("copy-template")
 			const defaultFolder = config.get("defaultProjectsFolder")
 
+			if (!config.get("author")) {
+				vscode.window.showErrorMessage(l10n.t("noAuthor"))
+				return
+			}
+
+			if (!config.get("repo")) {
+				vscode.window.showErrorMessage(l10n.t("noRepo"))
+				return
+			}
+
 			if (!defaultFolder) {
 				vscode.window.showErrorMessage(l10n.t("noDefaultFolder"))
 				return
@@ -101,7 +113,7 @@ function activate(context) {
 
 			let templates // load templates from data.json
             try {
-                templates = await getTemplates()
+                templates = await getTemplates(dataPath)
             } catch (e) {
                 const detail = e.message
                 vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${detail}`)
@@ -141,9 +153,9 @@ function activate(context) {
 				close: true
 			}
 
-			const execution = await vscode.tasks.executeTask(task)
-			const disposable = vscode.tasks.onDidEndTaskProcess(async e => {
-				if (e.execution !== execution) return
+			let disposable
+			disposable = vscode.tasks.onDidEndTaskProcess(async e => {
+				if (e.execution.task !== task) return
 				disposable.dispose()
 				if (e.exitCode !== 0) return
 
@@ -152,7 +164,8 @@ function activate(context) {
 					vscode.Uri.file(targetPath)
 				)
 			})
-			context.subscriptions.push(disposable)
+
+			await vscode.tasks.executeTask(task)
 		}
 	)
 

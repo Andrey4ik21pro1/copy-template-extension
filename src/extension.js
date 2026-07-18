@@ -2,7 +2,7 @@ const vscode = require("vscode")
 const { exec } = require("child_process")
 const { promisify } = require("util")
 const { l10n } = vscode
-const fs = require("fs")
+const fs = require("fs/promises")
 const path = require("path")
 const os = require("os")
 
@@ -27,16 +27,20 @@ function getDataPath() {
 	return path.join(baseDir, "copy-template", "data.json")
 }
 
-function getTemplates() {
+async function getTemplates() {
 	const dataPath = getDataPath()
 
-	if (!fs.existsSync(dataPath)) {
-		throw new Error("Data file not found. Please refresh templates.")
-	}
+	try {
+		const content = await fs.readFile(dataPath, "utf8")
+		const data = JSON.parse(content)
+		return data.templates || []
+	} catch (e) {
+		if (e.code === "ENOENT") {
+			throw new Error("Data file not found. Please refresh templates.")
+		}
 
-	const content = fs.readFileSync(dataPath, "utf8")
-	const data = JSON.parse(content)
-	return data.templates || []
+		throw e
+	}
 }
 
 async function updateTemplatesCache() {
@@ -97,7 +101,7 @@ function activate(context) {
 
 			let templates // load templates from data.json
             try {
-                templates = getTemplates()
+                templates = await getTemplates()
             } catch (e) {
                 const detail = e.message
                 vscode.window.showErrorMessage(`${l10n.t("templatesFailed")}: ${detail}`)
